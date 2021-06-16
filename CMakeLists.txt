@@ -1,0 +1,10 @@
+cmake_minimum_required( VERSION 3.14 )
+project( knn NONE LANGUAGES CXX )
+
+set( CMAKE_VERBOSE_MAKEFILE on )
+set( CMAKE_EXPORT_COMPILE_COMMANDS on )
+set( CMAKE_CXX_STANDARD 20 )
+set( CMAKE_CXX_COMPILER "/usr/bin/g++" )
+
+add_executable( knn knn.cpp )
+target_include_directories( knn PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
