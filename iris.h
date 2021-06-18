@@ -1,5 +1,5 @@
-#ifndef __IRIS_H
-#define __IRIS_H
+#ifndef __IRIS_H_
+#define __IRIS_H_
 
 #include "entity.h"
 #include <iostream>

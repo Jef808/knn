@@ -72,11 +72,6 @@ int main()
          zip_it.first != results.end();
          ++zip_it.first, ++zip_it.second, ++i)
     {
-        // auto [result_it, testing_it] = zip_it;
-
-        // Label guessed_type = *result_it;
-        // Label correct_type = *testing_it;
-
         Label guessed_type = *zip_it.first;
         Label correct_type = zip_it.second->label;
 

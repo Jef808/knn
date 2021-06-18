@@ -40,16 +40,6 @@ public:
         , m_ndx_map{one_to<NEntityMax>()}
         , m_dist_map{std::numeric_limits<Distance_t>::max()}
     {}
-    //constexpr KNN()  = default;
-    // template < typename InputIterator >
-    // constexpr KNN(InputIterator _beg, InputIterator _end)
-    //     : m_entity_map{}
-    //     , m_ndx_map(one_to<NEntityMax>())
-    //     , m_dist_map{}
-    //     , m_size{}
-    //     {
-    //         std::copy(_beg, _end, m_entity_map.begin());
-    //     }
 
     template < typename InputIterator >
     void set_training_data(InputIterator _beg, InputIterator _end) {
@@ -58,9 +48,6 @@ public:
             std::swap(_beg, _end);
         std::copy(_beg, _end, m_entity_map.begin());
                 m_size = abs(size);
-        // for (; _it < _end; ++_it) {
-        //     m_entity_map[i] = *_it;
-        // }
     }
 
     void push(const Entity& q) {
