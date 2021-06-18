@@ -15,9 +15,9 @@
 #include "iris.h"
 
 
-const std::string filename = std::string("../data/iris.data");
+const std::string filename = std::string("../data/iris/iris.data");
 constexpr auto N_data = 150;
-constexpr auto N_training_data = 25;
+constexpr auto N_training_data = 50;
 constexpr auto Nbh_size = 5;
 
 using iris::Entity;
@@ -47,8 +47,8 @@ void Data::input(const std::string& fn, std::size_t training_size) {
         it->ndx = i;
     }
 
-    testing = std::vector<Entity>(data.begin(), data.begin() + training_size);
-    training = std::vector<Entity>(data.begin() + training_size, data.end());
+    training = std::vector<Entity>(data.begin(), data.begin() + training_size);
+    testing = std::vector<Entity>(data.begin() + training_size, data.end());
 }
 
 
@@ -58,9 +58,11 @@ int main()
     data.input(filename, N_training_data);
 
     std::vector<Label> results;
+    results.reserve(N_training_data);
 
     auto knn = KNN();
     knn.set_training_data(data.training.begin(), data.training.end());
+    data.training.clear();
 
     for (const auto& entity : data.testing) {
         results.push_back(knn.most_likely_label(entity));

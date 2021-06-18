@@ -92,15 +92,25 @@ private:
         });
     }
 
+    // WARNING: I changed the distance here
+    // TODO: make distance a template parameter
     void compute_distances_from(const Entity& q) const {
         for (int i=0; i<m_size; ++i) {
-            m_dist_map[i] = dist(q, m_entity_map[i]);
+            m_dist_map[i] = rdist(q, m_entity_map[i]);
         }
     }
 
     Distance_t dist(const Entity& a, const Entity& b) const { // distance squared
         auto res = 0.0;
         for (int i=0; i<Entity::n_features(); ++i) {
+            res += (a[i] - b[i]) * (a[i] - b[i]);
+        }
+        return res;
+    }
+
+    Distance_t rdist(const Entity& a, const Entity& b) const { // rescaled distance
+        auto res = 0.0;
+        for (int i=0; i<Entity::n_features()-3; i+=4) {
             res += (a[i] - b[i]) * (a[i] - b[i]);
         }
         return res;
