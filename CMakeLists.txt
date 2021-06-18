@@ -10,5 +10,5 @@ set( CMAKE_BUILD_TYPE debug )
 set( source_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 set( data_DIR ${source_DIR}/data )
 
-add_executable( knn knn.cpp )
+add_executable( knn iris.cpp )
 target_include_directories( knn PUBLIC source_DIR data_DIR )

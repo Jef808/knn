@@ -8,22 +8,23 @@
 
 #include "entity.h"
 
-namespace {
-
-    template < std::size_t N >
-    auto constexpr one_to() {
-        auto ret = std::array<int, N> {};
-        std::iota(ret.begin(), ret.end(), 0);
-        return ret;
-    }
-
-    template < typename E >
-    typename std::underlying_type_t<E> to_integral(const E e) { return static_cast<std::underlying_type_t<E>>(e); }
-    template < typename E, typename IntT > E to_enum(const IntT i) { return E(i); }
-}
-
 
 namespace knn {
+namespace utils {
+
+template < std::size_t N >
+auto constexpr one_to() {
+    auto ret = std::array<int, N> {};
+    std::iota(ret.begin(), ret.end(), 0);
+    return ret;
+}
+
+template < typename E >
+typename std::underlying_type_t<E> to_integral(const E e) { return static_cast<std::underlying_type_t<E>>(e); }
+template < typename E, typename IntT > E to_enum(const IntT i) { return E(i); }
+
+} // namespace utils
+
 
 template < typename EntityT, std::size_t NbhSize, std::size_t NEntityMax >
 class KNN {
@@ -37,7 +38,7 @@ public:
 
     constexpr KNN()
         : m_entity_map{}
-        , m_ndx_map{one_to<NEntityMax>()}
+        , m_ndx_map{utils::one_to<NEntityMax>()}
         , m_dist_map{std::numeric_limits<Distance_t>::max()}
     {}
 
@@ -60,7 +61,7 @@ public:
         auto indexed_counter = count_nearby_labels(entity);
         auto cmp_second = [](const auto& a, const auto& b) { return a.second < b.second; };
         auto best_label_i = std::max_element(indexed_counter.begin(), indexed_counter.end(), cmp_second)->first;
-        return to_enum<Label>(best_label_i);
+        return utils::to_enum<Label>(best_label_i);
    }
 
     std::size_t size() const { return m_size; }
@@ -85,7 +86,7 @@ private:
         find_nbhs_indices(entity);
         for (int i=0; i<NbhSize; ++i) {
             Label label = m_entity_map[m_ndx_map[i]].label;
-            ++ret[to_integral(label)].second;
+            ++ret[utils::to_integral(label)].second;
         }
         return ret;
     }
