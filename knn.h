@@ -48,13 +48,7 @@ public:
         if (size < 0)
             std::swap(_beg, _end);
         std::copy(_beg, _end, m_entity_map.begin());
-                m_size = abs(size);
-    }
-
-    void push(const Entity& q) {
-        assert(m_size < NEntityMax);
-        m_entity_map[m_size] = q;
-        ++m_size;
+        m_size = abs(size);
     }
 
     Label most_likely_label(const Entity& entity) const {

@@ -24,65 +24,66 @@ using iris::Entity;
 using Label = Entity::Label;
 using KNN = knn::KNN<iris::Entity, Nbh_size, N_data>;
 
-auto get_input_data(const std::string& fn) {
+struct Data {
+    void input(const std::string& filename, std::size_t training_size);
+    std::vector<Entity> training;
+    std::vector<Entity> testing;
+};
+
+void Data::input(const std::string& fn, std::size_t training_size) {
     std::array<Entity, N_data> data {};
     std::ifstream _if;
     _if.open(fn);
     if (!_if) {
         std::cerr << "Unable to open file " << fn << std::endl;
-        return data;
     }
     for (int i=0; i<N_data; ++i) {
         _if >> data[i];
     }
-    return data;
+
+    std::random_shuffle(data.begin(), data.end());  // Data could be already partitionned into labels!
+
+    for (auto [i, it] = std::pair{0, data.begin()}; it != data.end(); ++i, ++it) {
+        it->ndx = i;
+    }
+
+    testing = std::vector<Entity>(data.begin(), data.begin() + training_size);
+    training = std::vector<Entity>(data.begin() + training_size, data.end());
 }
 
-auto split_at(auto _beg, auto _end, const auto split_ndx) {
-    return std::make_pair(std::vector<Entity>(_beg, _beg + split_ndx),
-                          std::vector<Entity>(_beg + split_ndx, _end));
-}
 
 int main()
 {
-    auto data = get_input_data(filename);
-    std::random_shuffle(data.begin(), data.end());  // Data could be already partitionned into labels!
-    int ndx = 0;
-    for (auto it=data.begin(); it!=data.end(); ++it, ++ndx) {
-        it->ndx = ndx;
-    }
-
-    auto [training_data, testing_data] = [n = N_training_data](auto _beg, auto _end) {
-        return std::make_pair(std::vector<Entity>(_beg, _beg + n),
-                              std::vector<Entity>(_beg + n, _end));
-    }(data.begin(), data.end());
+    Data data;
+    data.input(filename, N_training_data);
 
     std::vector<Label> results;
 
     auto knn = KNN();
-    knn.set_training_data(training_data.begin(), training_data.end());
+    knn.set_training_data(data.training.begin(), data.training.end());
 
-    for (const auto& entity : testing_data) {
+    for (const auto& entity : data.testing) {
         results.push_back(knn.most_likely_label(entity));
     }
 
     int n_correct = 0;
-    int i = 0;
-    for (auto zip_it = std::make_pair(results.begin(), testing_data.begin());
-         zip_it.first != results.end();
-         ++zip_it.first, ++zip_it.second, ++i)
+    //int i = 0;
+    for (auto ndx_zip_it = std::make_tuple(0, results.begin(), data.testing.begin());
+         get<1>(ndx_zip_it) != results.end();
+         ++get<0>(ndx_zip_it), ++get<1>(ndx_zip_it), ++get<2>(ndx_zip_it))
     {
-        Label guessed_type = *zip_it.first;
-        Label correct_type = zip_it.second->label;
+        auto [ndx, guessed_label_it, known_entity_it] = ndx_zip_it;
 
-        std::cout << i << "'th guess was " << guessed_type
+        Label correct_type = known_entity_it->label;
+
+        std::cout << ndx << "'th guess was " << *guessed_label_it
                   << " while answer was " << correct_type
                   << std::endl;
 
-        n_correct += (guessed_type == correct_type);
+        n_correct += (*guessed_label_it == correct_type);
     }
 
-    double percent_correct = 100.0 * n_correct / testing_data.size();
+    double percent_correct = 100.0 * n_correct / data.testing.size();
 
     printf("Percentage of correct guesses: %.2f", percent_correct);
 
