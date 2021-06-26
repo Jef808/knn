@@ -1,123 +1,143 @@
-#ifndef __KNN2_H_
-#define __KNN2_H_
+#ifndef KNN_H_
+#define KNN_H_
+
 
 #include <algorithm>
-#include <cassert>
-#include <functional>
 #include <numeric>
-
-#include "entity.h"
+#include <cstdint>
+#include <vector>
+#include "point.h"
 
 
 namespace knn {
-namespace utils {
 
-template < std::size_t N >
-auto constexpr one_to() {
-    auto ret = std::array<int, N> {};
-    std::iota(ret.begin(), ret.end(), 0);
-    return ret;
-}
+//auto constexpr inline image_size = 784;
+//auto constexpr inline n_labels = 10;
 
-template < typename E >
-typename std::underlying_type_t<E> to_integral(const E e) { return static_cast<std::underlying_type_t<E>>(e); }
-template < typename E, typename IntT > E to_enum(const IntT i) { return E(i); }
-
-} // namespace utils
-
-
-template < typename EntityT, std::size_t NbhSize, std::size_t NEntityMax >
 class KNN {
 public:
-    using Entity = EntityT;
-    using Index = typename Entity::Index;
-    using Feature_t = typename Entity::Feature_t;
-    using Features = typename Entity::Features;
-    using Label = typename Entity::Label;
-    using Distance_t = double;
+    using image_type = Point_Set::image_type;
+    using image_it = image_type::const_iterator;
 
-    constexpr KNN()
-        : m_entity_map{}
-        , m_ndx_map{utils::one_to<NEntityMax>()}
-        , m_dist_map{std::numeric_limits<Distance_t>::max()}
-    {}
+    const int image_size;
+    const int n_labels;
 
-    template < typename InputIterator >
-    void set_training_data(InputIterator _beg, InputIterator _end) {
-        auto size = std::distance(_beg, _end);
-        if (size < 0)
-            std::swap(_beg, _end);
-        std::copy(_beg, _end, m_entity_map.begin());
-        m_size = abs(size);
+
+    KNN(Point_Set& _ps) :
+        ps(_ps), image_size(_ps.image_size), n_labels(_ps.n_labels) { }
+
+
+
+    int get(const image_type& q_image, int k = 1) {
+        auto nbh = compute_impl_sort(q_image, k);
+        return guess_label(nbh);
     }
 
-    Label most_likely_label(const Entity& entity) const {
-        auto indexed_counter = count_nearby_labels(entity);
-        auto cmp_second = [](const auto& a, const auto& b) { return a.second < b.second; };
-        auto best_label_i = std::max_element(indexed_counter.begin(), indexed_counter.end(), cmp_second)->first;
-        return utils::to_enum<Label>(best_label_i);
-   }
+    int get(image_it q_beg, int  k = 1) {
+        return get(image_type(q_beg, q_beg + 784));
+    }
 
-    std::size_t size() const { return m_size; }
-    std::size_t max_size() const { return NEntityMax; }
-    std::size_t nbh_size() const { return NbhSize; }
+    /** Given the k-nearest neighbors, guess the label. */
+    using neighborhood = std::vector<std::pair<size_t, double>>;
+    int guess_label(neighborhood nbh) {
+        auto counter = empty_counter();
+
+        for (auto [ndx, dist] : nbh) {
+            int label = ps.label(ndx);
+            ++counter[label].second;
+        }
+
+        // {label_ndx, label_count}... Most frequent label nearby
+        auto best_label = std::max_element(counter.begin(),
+                                           counter.end(),
+                                           [](const auto& lc_a, const auto& lc_b) {
+                                               return lc_a.second < lc_b.second;
+                                           });
+        return best_label->first;
+    }
+
+/**
+ * Given a Point_Set and a query image, compute the most likely
+ * label for that image by the knn algorithm.
+ *
+ * Return pairs {distance, index} for debugging
+ */
+        std::vector<std::pair<size_t, double>> compute(image_type::iterator q_beg, size_t k = 1) {
+            // k = 1 to begin with
+            auto ps_iterator = ps.beg(0);
+            auto ps_end = ps.end(ps.size());
+            auto q_iterator = q_beg;
+            size_t ndx = 0, best_ndx = 0;
+
+            double dist = distance(ps_iterator, ps_iterator + image_size, q_iterator);
+            double best_dist = dist;
+
+            // Naive impl, check every member one after the other.
+            while (ps_iterator != ps_end) {
+                ++ndx;
+                ps_iterator = ps.beg(ndx);
+                q_iterator = q_beg;
+
+                dist = distance(ps_iterator, ps_iterator + image_size, q_iterator);
+                if (dist < best_dist)
+                    best_dist = dist; best_ndx = ndx;
+            }
+
+            return std::vector<std::pair<size_t, double>> { std::pair{ best_ndx, best_dist } };
+        }
+
+        std::vector<std::pair<size_t, double>> compute_impl_sort(const image_type& q_image, size_t k) {
+            std::vector<std::pair<int, double>> dists;
+            dists.reserve(ps.size());
+            image_it q_beg = q_image.begin();
+            image_it q_it = q_beg;
+
+            for (int i=0; i<ps.size(); ++i) {
+                q_it = q_beg;
+                dists.push_back(std::pair{ i, distance(ps.beg(i), ps.end(i), q_it) });
+            }
+
+            std::partial_sort(dists.begin(), dists.begin() + k, dists.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+            std::vector<std::pair<size_t, double>> ret;
+            std::copy(dists.begin(), dists.begin() + k, std::back_inserter(ret));
+            return ret;
+        }
+/**
+ * Compute the distance between an external image and one contained in a point set.
+ * The one in the point set is given in terms of its begin and end iterators.
+ */
+        double distance(auto pt_beg, auto pt_end, auto q_beg) {
+            std::vector<double> tmp_res{};
+            std::transform(pt_beg, pt_end, q_beg, back_inserter(tmp_res), [](const uint8_t a, const uint8_t b) {
+                return static_cast<double>((int(a) - int(b))) * static_cast<double>((int(a) - int(b))) / 16384.0;
+            });
+            return std::accumulate(tmp_res.begin(), tmp_res.end(), 0);
+            // return std::transform_reduce(pt_beg, pt_end, q_beg, 0,
+            //              [](const auto a1, const auto a2) { return a1 + a2; },          // reduce fcn
+            //              [](const auto a, const auto b) { return (a - b) * (a - b); }); // transform
+        }
+
+        double distance(const image_type& image_a, const image_type& image_b) {
+            return distance(image_a.begin(), image_a.end(), image_b.begin());
+        }
 
 private:
-    using Index_map = std::array<Index, NEntityMax>;
-    using Entity_map = std::array<Entity, NEntityMax>;
-    using Distance_map = std::array<Distance_t, NEntityMax>;
+    Point_Set& ps;
 
-    Entity_map           m_entity_map;
-    mutable Index_map    m_ndx_map;
-    mutable Distance_map m_dist_map;
-    std::size_t m_size;
-
-    auto count_nearby_labels(const Entity& entity) const {
-        std::array<std::pair<int, int>, Entity::n_labels> ret {std::pair{0, 0}};  // (label_i, count)
-        for (auto [i, it] = std::make_pair(0, ret.begin()); it!=ret.end(); ++it, ++i) {
-            it->first = i;
-        }
-        find_nbhs_indices(entity);
-        for (int i=0; i<NbhSize; ++i) {
-            Label label = m_entity_map[m_ndx_map[i]].label;
-            ++ret[utils::to_integral(label)].second;
+    std::vector<std::pair<int, size_t>>
+    empty_counter() {
+        std::vector<std::pair<int, size_t>> ret(n_labels);
+        for (int i=0; i<n_labels; ++i) {
+            ret[i].first = i; ret[i].second = 0;
         }
         return ret;
     }
 
-    void find_nbhs_indices(const Entity& q) const {
-        compute_distances_from(q);
-        std::partial_sort(m_ndx_map.begin(), m_ndx_map.begin() + NbhSize, m_ndx_map.begin() + m_size, [&](auto a, auto b) {
-            return m_dist_map[a] < m_dist_map[b];
-        });
-    }
 
-    // WARNING: I changed the distance here
-    // TODO: make distance a template parameter
-    void compute_distances_from(const Entity& q) const {
-        for (int i=0; i<m_size; ++i) {
-            m_dist_map[i] = rdist(q, m_entity_map[i]);
-        }
-    }
-
-    Distance_t dist(const Entity& a, const Entity& b) const { // distance squared
-        auto res = 0.0;
-        for (int i=0; i<Entity::n_features(); ++i) {
-            res += (a[i] - b[i]) * (a[i] - b[i]);
-        }
-        return res;
-    }
-
-    Distance_t rdist(const Entity& a, const Entity& b) const { // rescaled distance
-        auto res = 0.0;
-        for (int i=0; i<Entity::n_features()-3; i+=4) {
-            res += (a[i] - b[i]) * (a[i] - b[i]);
-        }
-        return res;
-    }
 };
 
 } // namespace knn
 
 
-#endif // KNN2_H_
+
+#endif // KNN_H_

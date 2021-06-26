@@ -1,12 +1,13 @@
 // main
-#include "point.h"
 #include "mnist_new.h"
+#include "point.h"
 #include "knn.h"
 #include "console_view.h"
 
 const int n_train = 300;
 const int n_test  = 100;
-
+const int n_labels = 10;
+const int img_size = 784;
 
 using namespace knn;
 
@@ -16,8 +17,8 @@ int main()
 
     PRINT("Loaded data");
 
-    Point_Set points(std::move(lab_trn), std::move(img_trn));
-    KNN knn;
+    Point_Set points(std::move(lab_trn), std::move(img_trn), img_size, n_labels);
+    KNN knn(points);
 
     PRINT("Populated Point_Set");
 
@@ -32,7 +33,7 @@ int main()
     while (img_it != img_end) {
 
         int correct_label = *lab_it;
-        int guessed_label = knn.guess_label(points, img_it);
+        int guessed_label = knn.guess_label(img_it);
 
         PRINT("Test done, result is", (correct_label == guessed_label ? " RIGHT" : " WRONG"));
         // avg_old = #success/ndx
@@ -40,7 +41,8 @@ int main()
         //
         // avg_new = avg_old (+[1 or 0] - avg_old)/(ndx+1)
         res[ndx] = guessed_label == correct_label;
-        avg += (res[ndx] - avg) / (ndx+=1);
+        avg += (res[ndx] - avg) / (ndx+1);
+        ++ndx;
 
          ++lab_it;
     }
