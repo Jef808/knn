@@ -30,8 +30,8 @@ public:
         : m_image(image) { }
 
 
-    void finalize(std::ostream& out, const std::string& s) {
-        out << s << std::string("\[033[39m") << std::endl;
+    void reset_out(std::ostream& out) {
+        out << "\e[0m" << std::endl;
     }
 
     void display(std::ostream& out) {
@@ -44,7 +44,7 @@ public:
             }
             out << "\n";
         }
-        //finalize(std::cout, ss.str());
+        reset_out(std::cout);
     }
 
     int coords_to_index(int x, int y) {
@@ -64,7 +64,7 @@ public:
     }
 
 private:
-    const std::vector<uint8_t> m_image;
+    const std::vector<uint8_t>& m_image;
 };
 
 

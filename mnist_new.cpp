@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <sstream>
+#include <utility>
 #include <type_traits>
 
 
@@ -42,10 +43,10 @@ int main()
 
     PRINT("bare method");
     auto start0 = now();
-    auto ret0 = load_csv_bare()(fn, n_images);
+    auto [labels0, images0] = load_csv_bare()(fn, n_images);
     auto end0 = now();
     time(start0, end0);
-    ret0.clear();
+    labels0.clear(); images0.clear();
 
     PRINT("fancy method");
     auto start = now();
