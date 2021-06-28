@@ -30,9 +30,7 @@ public:
     Console_grayscale_view(const std::vector<uint8_t>& image)
         : m_image(image) { }
 
-    void display(std::ostream& out, const image_t& other = image_t(), float distance = 0.0) {
-        std::ostringstream ss;
-
+    void display(std::ostream& out, const image_t& other = image_t()) {
         for (int y = 0; y < 28; ++y) {
             for (int x = 0; x < 28; ++x) {
                 uint8_t pixel = m_image[coords_to_index(x, y)];
@@ -51,6 +49,15 @@ public:
         }
         reset_out(out);
         out << std::endl;
+    }
+
+    void display_raw(std::ostream& out) {
+        for (int y = 0; y < 28; ++y) {
+            for (int x = 0; x < 28; ++x) {
+                int pixel = m_image[coords_to_index(x, y)];
+                out << pixel << ' ';
+            }
+        }
     }
 
 private:
@@ -104,19 +111,6 @@ struct Single_viewer {
     }
 };
 
-// inline void view_image(Single_viewer::image_it beg, Single_viewer::image_it end) {
-//     Single_viewer(Single_viewer::image_t(beg, end), Single_viewer::image_t())();
-// }
-
-
-// inline void view_image(const Single_viewer::image_t& image_l, const Single_viewer::image_t& image_r = Single_viewer::image_t()) {
-//     Single_viewer(image_l, image_r)();
-//     //view();
-// }
-
-// inline void view_image(Single_viewer::image_t& image_l, Single_viewer::image_it beg, Single_viewer::image_it end) {
-//     Single_viewer(image_l, beg, end)();
-// }
 
 struct View_iterator {
     using image_t = std::vector<uint8_t>;
@@ -133,62 +127,62 @@ struct View_iterator {
 
 };
 
-struct Viewer {
+// struct Viewer {
 
-    using image_t = std::vector<uint8_t>;
+//     using image_t = std::vector<uint8_t>;
 
-    Viewer(const std::vector<uint8_t>& images)
-        : m_images(images) { }
+//     Viewer(const std::vector<uint8_t>& images)
+//         : m_images(images) { }
 
-    void operator()(int n, image_t other = image_t(), float distance = 0.0, bool display_raw = false) {
-        auto [nbeg, nend] = beg_end(n);
+//     void operator()(int n, image_t other = image_t(), float distance = 0.0, bool display_raw = false) {
+//         auto [nbeg, nend] = beg_end(n);
 
-        auto beg = m_images.begin() + nbeg;
-        auto end = m_images.begin() + nend;
+//         auto beg = m_images.begin() + nbeg;
+//         auto end = m_images.begin() + nend;
 
-        auto img = std::vector<uint8_t>(beg, end);
+//         auto img = std::vector<uint8_t>(beg, end);
 
-        Console_grayscale_view view(img);
+//         Console_grayscale_view view(img);
 
-        view.display(std::cout, other, distance);
+//         view.display(std::cout, other);
 
-        if (!other.empty() && distance > 0) {
-            std::cout << std::string(' ', 28)
-                      << "\033[0;32mDISTANCE = \033[0;31m"
-                      << std::setprecision(2)
-                      << distance
-                      << "\033[0m"
-                      << std::endl;
-        }
-    }
-
-
-    void compare(const image_t& img_a, const image_t& img_b, float distance) {
-
-        Console_grayscale_view view(img_a);
-
-        view.display(std::cout, img_b);
-
-        if (!img_b.empty() && distance > 0) {
-            std::cout << std::string(' ', 28)
-                      << "\033[0;32mDISTANCE =\033[0m "
-                      << std::setprecision(2)
-                      << "\033[0;31m"
-                      << distance
-                      << "\033[0m"
-                      << std::endl;
-        }
-    }
-
-    std::vector<uint8_t> m_images;
+//         if (!other.empty() && distance > 0) {
+//             std::cout << std::string(' ', 28)
+//                       << "\033[0;32mDISTANCE = \033[0;31m"
+//                       << std::setprecision(2)
+//                       << distance
+//                       << "\033[0m"
+//                       << std::endl;
+//         }
+//     }
 
 
-    std::pair<int, int> beg_end(int n) {
-        auto beg = n * 784;
-        auto end = (n + 1) * 784;
-        return std::pair{ beg, end };
-    }
-};
+//     void compare(const image_t& img_a, const image_t& img_b, float distance) {
+
+//         Console_grayscale_view view(img_a);
+
+//         view.display(std::cout, img_b);
+
+//         if (!img_b.empty() && distance > 0) {
+//             std::cout << std::string(' ', 28)
+//                       << "\033[0;32mDISTANCE =\033[0m "
+//                       << std::setprecision(2)
+//                       << "\033[0;31m"
+//                       << distance
+//                       << "\033[0m"
+//                       << std::endl;
+//         }
+//     }
+
+//     std::vector<uint8_t> m_images;
+
+
+//     std::pair<int, int> beg_end(int n) {
+//         auto beg = n * 784;
+//         auto end = (n + 1) * 784;
+//         return std::pair{ beg, end };
+//     }
+// };
 
 
 } // namespace display

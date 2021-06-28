@@ -45,8 +45,6 @@ void time(auto start, auto end) {
 int main()
 {
     std::string fn =  "data/mnist/train.csv";
-    int n_images = 12000;
-
 
     PRINT("document open");
 
@@ -56,34 +54,35 @@ int main()
     PRINT("bare method");
     auto start0 = now();
     load_csv_bare loader{};
-    auto [labels0, images0] = loader(fn, n_images);
+    auto [labels0, images0] = loader(fn, 42000);
     auto end0 = now();
     time(start0, end0);
     labels0.clear(); images0.clear();
 
     PRINT("fancy method");
     auto start = now();
-    auto [labels, ret] = load_csv(fn, n_images);
+    auto [labels, ret] = load_csv(fn, 42000);
     auto end = now();
     time(start, end);
     labels.clear(); ret.clear();
 
-    PRINT("Splitting training and testing data");
-    PRINT("-----------------------------------");
-    // PRINT("bare method");
-    // auto start0 = now();
-    // auto [labels0, images0] = load_csv_bare(fn, n_images);
-    // auto end0 = now();
-    // time(start0, end0);
-    // labels0.clear(); images0.clear();
-
-    PRINT("fancy method");
+    PRINT("Splitting the labaled images for training");
     auto start1 = now();
     load_csv_train_test load_train;
-    auto [labels_tr, images_tr, labels_tst, images_tst] = load_train(fn, n_images / 3, 2 * n_images / 3);
+    auto [labels_tr, images_tr, labels_tst, images_tst] = load_train(fn, 42000 / 3, 2 * 42000 / 3);
     auto end1 = now();
     time(start1, end1);
 
+    PRINT("All labeled images");
+    auto start3 = now();
+    auto [labels3, images3] = load_csv(fn, 42000);
+    auto end3 = now();
+    time(start3, end3);
 
+    PRINT("File without labels");
+    auto start2 = now();
+    auto images = load_csv_no_labels("data/mnist/test.csv", 28000);
+    auto end2 = now();
+    time(start2, end2);
 
 }

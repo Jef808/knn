@@ -10,26 +10,10 @@
 #include <type_traits>
 
 
-// inline std::ostream& operator<<(std::ostream& out, const std::vector<uint8_t>& vec) {
-//     for (auto v : vec) {
-//         std::cout << int(v) << ' ';
-//     }
-//     return out;
-// }
-
-// inline std::ostream& operator<<(std::ostream& out, const std::vector<int>& vec) {
-//     for (auto v : vec) {
-//         std::cout << v << ' ';
-//     }
-//     return out;
-// }
-
 template < typename... Args >
 inline std::ostream& PRINT (Args&&... args) {
     return (std::cout << ... << args) << std::endl;
 }
-
-
 
 inline auto tokenize(const std::string& str, std::vector<uint8_t>& ret, std::vector<uint8_t>& labels) {
     auto it = str.begin(), end = str.end();
@@ -67,7 +51,7 @@ struct load_csv_bare {
     auto operator()(const std::string& filename, int n_lines = 12000) {
         std::ifstream ifs (filename);
         if (!ifs) {
-            PRINT("could not open document");
+            std::cerr << "could not open document";
             return std::pair{ std::vector<uint8_t>(), std::vector<uint8_t>() };
         }
         std::string _buf;
@@ -79,7 +63,6 @@ struct load_csv_bare {
 
 class csv_tokenizer {
 public:
-    //csv_tokenizer() {}
     csv_tokenizer(std::string* s) :
         m_str(s), m_it(m_str->begin()), m_end(s->end())
     { find_next_token(); }
@@ -88,17 +71,7 @@ public:
         m_nex = std::find(m_it, m_end, ',');
     }
 
-    //csv_tokenizer& operator=(const csv_tokenizer& other) = default;
-
-    // void setbuf(const std::string& s) {
-    //     m_str = s;
-    //     m_it = m_str.begin();
-    //     m_end = m_str.end();
-    //     find_next_token();
-    // }
-
     void reset() {
-        //m_str = s;
         m_it = m_str->begin();
         m_end = m_str->end();
         find_next_token();
@@ -138,7 +111,6 @@ public:
     void resetbuf() {
         m_buf->reset();
         m_ok = true;
-
     }
 
     std::string operator*() const {
@@ -146,7 +118,6 @@ public:
     }
 
     csv_tokenizer_iterator& operator++() {
-        //PRINT("bumping");
         m_ok = m_buf->bump();
         return *this;
     }
@@ -205,7 +176,6 @@ inline auto input(std::istream& ifs, int count=0) {
     labels.reserve(count);
 
     std::string buf;
-    int c = 0;
     auto tok = csv_tokenizer(&buf);
     auto tok_it = csv_tokenizer_iterator(&tok);
     auto out_pixels = back_converter_inserter(ret);
@@ -213,10 +183,8 @@ inline auto input(std::istream& ifs, int count=0) {
 
     while (getline(ifs, buf)) {
         tok_it.resetbuf();
-        ++c;
         auto _n = *tok_it;
         out_labels = _n; ++tok_it;
-
         //auto tok_end = csv_tokenizer_iterator();
         while (tok_it) {
             _n = *tok_it;
@@ -226,11 +194,36 @@ inline auto input(std::istream& ifs, int count=0) {
         // (when there is no comma left)
         _n = *tok_it;
         out_pixels = _n;
-        if (c == count)
-            break;
     }
 
     return std::pair{ labels, ret };
+}
+
+/** {labels, pixels} where pixels is a one-dimensional concatenation of all the rows. */
+inline auto input_no_labels(std::istream& ifs, int n_lines) {
+    std::vector<uint8_t> ret{};
+    ret.reserve(784 * n_lines);
+    
+    std::string buf;
+    auto tok = csv_tokenizer(&buf);
+    auto tok_it = csv_tokenizer_iterator(&tok);
+    auto out_pixels = back_converter_inserter(ret);
+    
+    while (getline(ifs, buf)) {
+        tok_it.resetbuf();
+        std::string _n;
+        //auto tok_end = csv_tokenizer_iterator();
+        while (tok_it) {
+            _n = *tok_it;
+            out_pixels = _n; ++tok_it;
+        }
+        // TODO: Fix this! The last entry doesn't get picked up
+        // (when there is no comma left)
+        _n = *tok_it;
+        out_pixels = _n;
+    }
+
+    return ret;
 }
 
 struct load_csv_helper {
@@ -249,11 +242,28 @@ struct load_csv_helper {
     }
 };
 
+struct load_csv_helper_no_labels {
+    std::vector<uint8_t>
+    operator()(const std::string& filename, int n_lines) {
+        std::ifstream ifs (filename);
+        if (!ifs) {
+            PRINT("could not open document");
+            return std::vector<uint8_t>();
+        }
+        std::string _buf;
+        std::getline(ifs, _buf); _buf.clear();
+        return input_no_labels(ifs, n_lines);
+    }
+};
 
-auto inline load_csv(const std::string& filename, int n_lines = 12000) {
+
+auto inline load_csv(const std::string& filename, int n_lines = 0) {
     return load_csv_helper()(filename, n_lines);
 }
 
+auto inline load_csv_no_labels(const std::string& filename, int n_lines = 0) {
+    return load_csv_helper_no_labels()(filename, n_lines);
+}
 
 struct load_csv_train_test {
     using vec = std::vector<uint8_t>;
@@ -275,6 +285,3 @@ struct load_csv_train_test {
     }
 };
 
-// auto inline load_csv_test(const std::string& filename, int n_training, int n_test) {
-//     return load_csv_train_test()(filename, n_training = 12000, n_test = 30000);
-// }

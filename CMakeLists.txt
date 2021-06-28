@@ -30,6 +30,11 @@ target_include_directories( console_view PUBLIC ${data_DIR} )
 add_executable( main main.cpp )
 target_include_directories( main PUBLIC ${data_DIR} )
 
+add_executable( kaggle_compete kaggle_compete.cpp )
+target_include_directories( kaggle_compete PUBLIC ${data_DIR} )
+
+add_executable( stats statistics.cpp )
+target_include_directories( stats PUBLIC ${data_DIR} )
 
 find_package(OpenCV REQUIRED)
 

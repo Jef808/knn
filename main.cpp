@@ -1,13 +1,15 @@
 // main
 #include <chrono>
 #include <iomanip>
+#include <vector>
 #include "mnist.h"
 #include "point.h"
 #include "knn.h"
 //#include "console_view.h"
 
-const int n_train = 1000;
-const int n_test  = 3000;
+const int n_train  = 10000;
+const int n_test   = 3000;
+const int n_nbh    = 5;
 const int n_labels = 10;
 const int img_size = 784;
 
@@ -31,11 +33,8 @@ int main()
 
     //auto [labels, images] = load_csv("data/mnist/train.csv", 5000);
 
-    const int n_training = 5000;
-    const int n_test = 12000;
-
     load_csv_train_test load_csv_test;
-    auto [labels_tr, images_tr, labels_tst, images_tst] = load_csv_test("../data/mnist/train.csv", n_training, n_test);
+    auto [labels_tr, images_tr, labels_tst, images_tst] = load_csv_test("../data/mnist/train.csv", n_train, n_test);
 
     /**
      * Because Point_Set will gain ownership of the vectors, we either need to work with
@@ -64,7 +63,7 @@ int main()
         // }
 
         int correct_label = *(labels_tst.begin() + i);
-        int guessed_label = knn.get(q_image, 3);
+        int guessed_label = knn.get(q_image, n_nbh);
 
         bool correct = correct_label == guessed_label;
 
@@ -78,7 +77,8 @@ int main()
     }
     auto end = now();
 
-    PRINT("Success rate: ", std::setprecision(2), avg, "avg time per test: ", time(start, end) / n_test, "s.");
+    PRINT("Training set size: ", n_train, " Testing set size: ", n_test, " knn number: ", n_nbh);
+    PRINT("Success rate: ", avg, " avg time per test: ", std::setprecision(2), time(start, end) / n_test, "s.");
 
     return EXIT_SUCCESS;
 }
