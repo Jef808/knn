@@ -12,7 +12,7 @@ set( source_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 set( data_DIR ${source_DIR}/data )
 
 set( boost_INCLUDE_DIR "/usr/include/boost/" )
-set( pipes_INCLUDE_DIR "third_party/pipes/include/" )
+set( mlpack_INCLUDE_DIR "/usr/include/mlpack/" )
 
 #include_directories( ${boost_INCLUDE_DIR} )
 #include_directories( ${pipes_INCLUDE_DIR} )
@@ -35,6 +35,24 @@ target_include_directories( kaggle_compete PUBLIC ${data_DIR} )
 
 add_executable( stats statistics.cpp )
 target_include_directories( stats PUBLIC ${data_DIR} )
+
+set( CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} /usr/local )
+find_package(Armadillo REQUIRED)
+find_package(OpenMP REQUIRED)
+find_package(mlpack REQUIRED)
+
+message (STATUS "mlpack library status:")
+message(STATUS "    config: ${mlpack_DIR}")
+message(STATUS "    version: ${mlpack_VERSION}")
+message(STATUS "    libraries: ${mlpack_LIBRARIES}")
+message(STATUS "    include path: ${mlpack_INCLUDE_DIRS}")
+
+add_executable( mnist_mlpack mnist_mlpack.cpp )
+target_compile_definitions( mnist_mlpack PUBLIC fopenmp )
+target_link_libraries( mnist_mlpack PRIVATE mlpack armadillo )
+target_include_directories( mnist_mlpack PUBLIC ${data_DIR} )
+
+#target_compile_definitions( mnist_mlpack PUBLIC fopenmp )
 
 find_package(OpenCV REQUIRED)
 
