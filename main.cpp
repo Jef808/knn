@@ -1,30 +1,30 @@
 // main
+#include "knn.h"
+#include "mnist.h"
+#include "point.h"
 #include <chrono>
 #include <iomanip>
 #include <vector>
-#include "mnist.h"
-#include "point.h"
-#include "knn.h"
-//#include "console_view.h"
+#include "console_view.h"
 
-const int n_train  = 10000;
-const int n_test   = 3000;
-const int n_nbh    = 5;
+const int n_train = 10000;
+const int n_test = 3000;
+const int n_nbh = 5;
 const int n_labels = 10;
 const int img_size = 784;
 
 using namespace knn;
 
-
-auto now() {
+auto now()
+{
     return std::chrono::steady_clock::now();
 }
 
-auto time(auto start, auto end) {
+auto time(auto start, auto end)
+{
     std::chrono::duration<double> elapsed = end - start;
     return elapsed.count();
 }
-
 
 int main()
 {
@@ -48,32 +48,28 @@ int main()
 
     auto start = now();
 
-    for (int i=0; i<n_test; ++i) {
-        q_image = image_t(images_tst.begin() + i * 784, images_tst.begin() + (i+1) * 784);
+    for (int i = 0; i < n_test; ++i) {
+        q_image = image_t(images_tst.begin() + i * 784, images_tst.begin() + (i + 1) * 784);
 
-        //auto five_best = knn.compute_impl_sort(q_image, 5);
+        auto five_best = knn.compute_impl_sort(q_image, 5);
 
-        // display::View_iterator view_it(q_image);
+        display::View_iterator view_it(q_image);
 
-        // PRINT("The five nearest neighbors of the query image are");
+        PRINT("The five nearest neighbors of the query image are");
 
-        // for (auto [n, dist] : five_best) {
-        //     view_it(points[n]);
-        //     std::cout << "DISTANCE : " << std::setprecision(2) << dist << std::endl;
-        // }
+        for (auto [n, dist] : five_best) {
+            view_it(points[n]);
+            std::cout << "DISTANCE : " << std::setprecision(2) << dist << std::endl;
+        }
 
         int correct_label = *(labels_tst.begin() + i);
         int guessed_label = knn.get(q_image, n_nbh);
 
         bool correct = correct_label == guessed_label;
 
-        //PRINT("GUESSED ", guessed_label);
+        PRINT("GUESSED ", guessed_label);
 
         avg += (correct - avg) / (i + 1);
-
-        // if (i % 100 == 0) {
-        //     PRINT("After ", i, "tries, Average result is ", avg);
-        // }
     }
     auto end = now();
 

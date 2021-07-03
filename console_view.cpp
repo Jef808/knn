@@ -167,22 +167,4 @@ int main()
     PRINT("Average result : ", avg);
 
     return EXIT_SUCCESS;
-
-
-        //std::this_thread::sleep_for(400ms);
-    //}
-
-    // for (int i=0; i<100; ++i) {
-    //     image_t query_image = image_t(images2.begin() + i * image_size, images2.begin() + (i + 1) * image_size);
-    //     auto [closest_dist, closest_nbh_ndx] = knn.compute(query_image.begin()).back();
-
-    //     image_t closest_image = points[closest_nbh_ndx];
-    //     label_t closest_image_label = points.label(closest_nbh_ndx);
-
-
-    //     view.compare(closest_image, query_image, closest_dist);
-    //     std::cout << "The closest neighbour has label " << (int)(closest_image_label) << std::endl;
-    // }
-
-
 }

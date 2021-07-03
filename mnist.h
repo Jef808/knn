@@ -25,8 +25,6 @@ inline auto tokenize(const std::string& str, std::vector<uint8_t>& ret, std::vec
         it_n = std::find(it, end, ',');
         ss = static_cast<uint8_t>(std::stoi(std::string(it, it_n)));
         ret.push_back(ss);
-        // if (it_n == str.end())
-        //     break;
         it = ++it_n;
     }
 }
