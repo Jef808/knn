@@ -1,19 +1,19 @@
-#include <vector>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
+#include "console_view.h"
+#include "knn.h"
 #include "mnist.h"
 #include "point.h"
-#include "knn.h"
-#include "console_view.h"
 
-void kaggle_compete() {
+void kaggle_compete()
+{
     using image_t = std::vector<uint8_t>;
 
     const std::string fn_train_in = "data/mnist/train.csv";
     const std::string fn_test_in = "data/mnist/test.csv";
     const std::string fn_out = "data/mnist/kaggle_submission.csv";
-
 
     auto [labels, training] = load_csv(fn_train_in, 42000);
     auto testing = load_csv_no_labels(fn_test_in, 28000);
@@ -26,8 +26,8 @@ void kaggle_compete() {
 
     std::vector<int> results;
 
-    for (int i=0; i<28000; ++i) {
-        q_image = image_t(testing.begin() + i * 784, testing.begin() + (i+1) * 784);
+    for (int i = 0; i < 28000; ++i) {
+        q_image = image_t(testing.begin() + i * 784, testing.begin() + (i + 1) * 784);
 
         int guessed_label = knn.get(q_image, 3);
         results.push_back(guessed_label);
@@ -39,11 +39,10 @@ void kaggle_compete() {
         return;
     }
 
-    for (int i=0; i<28000; ++i) {
+    for (int i = 0; i < 28000; ++i) {
         ofs << i << ',' << results[i] << '\n';
     }
 }
-
 
 int main()
 {

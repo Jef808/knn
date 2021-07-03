@@ -1,50 +1,52 @@
 #include "mnist.h"
 
 #include <chrono>
-#include <vector>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 #include <string>
 #include <string_view>
-#include <sstream>
-#include <utility>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
-
-std::ostream& operator<<(std::ostream& out, const std::vector<uint8_t>& vec) {
+std::ostream& operator<<(std::ostream& out, const std::vector<uint8_t>& vec)
+{
     for (auto v : vec) {
         std::cout << int(v) << ' ';
     }
     return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const std::vector<int>& vec) {
+std::ostream& operator<<(std::ostream& out, const std::vector<int>& vec)
+{
     for (auto v : vec) {
         std::cout << v << ' ';
     }
     return out;
 }
 
-
-template < typename... Args >
-std::ostream& OUT (std::ostream& out, Args&&... args) {
+template <typename... Args>
+std::ostream& OUT(std::ostream& out, Args&&... args)
+{
     return (out << ... << args);
 }
 
-auto now() {
+auto now()
+{
     return std::chrono::steady_clock::now();
 }
 
-void time(auto start, auto end) {
+void time(auto start, auto end)
+{
     std::chrono::duration<double> elapsed = end - start;
     PRINT("elapsed time: ", elapsed.count(), "s\n");
 }
 
-
 int main()
 {
-    std::string fn =  "data/mnist/train.csv";
+    std::string fn = "data/mnist/train.csv";
 
     PRINT("document open");
 
@@ -53,18 +55,20 @@ int main()
 
     PRINT("bare method");
     auto start0 = now();
-    load_csv_bare loader{};
+    load_csv_bare loader {};
     auto [labels0, images0] = loader(fn, 42000);
     auto end0 = now();
     time(start0, end0);
-    labels0.clear(); images0.clear();
+    labels0.clear();
+    images0.clear();
 
     PRINT("fancy method");
     auto start = now();
     auto [labels, ret] = load_csv(fn, 42000);
     auto end = now();
     time(start, end);
-    labels.clear(); ret.clear();
+    labels.clear();
+    ret.clear();
 
     PRINT("Splitting the labaled images for training");
     auto start1 = now();
@@ -84,5 +88,4 @@ int main()
     auto images = load_csv_no_labels("data/mnist/test.csv", 28000);
     auto end2 = now();
     time(start2, end2);
-
 }

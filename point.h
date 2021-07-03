@@ -1,9 +1,8 @@
 #ifndef POINT_H_
 #define POINT_H_
 
-
-#include <vector>
 #include <iostream>
+#include <vector>
 
 class Point_Set {
 public:
@@ -14,31 +13,42 @@ public:
     const size_t image_size;
     const int n_labels;
 
-    Point_Set(const size_t _image_size, const int _n_labels) :
-        n_labels(_n_labels), image_size(_image_size)
-    { }
+    Point_Set(const size_t _image_size, const int _n_labels)
+        : n_labels(_n_labels)
+        , image_size(_image_size)
+    {
+    }
 
-    Point_Set(image_type&& labels, image_type&& pixels, const size_t _image_size, const int _n_labels) :
-        m_labels(std::move(labels)), m_pixels(std::move(pixels)), n_labels(_n_labels), image_size(_image_size)
-    { }
+    Point_Set(image_type&& labels, image_type&& pixels, const size_t _image_size, const int _n_labels)
+        : m_labels(std::move(labels))
+        , m_pixels(std::move(pixels))
+        , n_labels(_n_labels)
+        , image_size(_image_size)
+    {
+    }
 
-    image_type::const_iterator beg(size_t n) const {
+    image_type::const_iterator beg(size_t n) const
+    {
         return m_pixels.begin() + n * image_size;
     }
 
-    image_type::const_iterator end(size_t n) const {
+    image_type::const_iterator end(size_t n) const
+    {
         return m_pixels.begin() + (n + 1) * image_size;
     }
 
-    size_t size() const {
+    size_t size() const
+    {
         return m_labels.size();
     }
 
-    label_type label(size_t n) const {
+    label_type label(size_t n) const
+    {
         return m_labels[n];
     }
 
-    image_type operator[](size_t n) const {
+    image_type operator[](size_t n) const
+    {
         return image_type(beg(n), end(n));
     }
 
@@ -55,6 +65,5 @@ private:
     //     // each image, instead put that in the iterator.
     // }
 };
-
 
 #endif // POINT_H_

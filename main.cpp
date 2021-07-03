@@ -1,11 +1,11 @@
 // main
+#include "console_view.h"
 #include "knn.h"
 #include "mnist.h"
 #include "point.h"
 #include <chrono>
 #include <iomanip>
 #include <vector>
-#include "console_view.h"
 
 const int n_train = 10000;
 const int n_test = 3000;
